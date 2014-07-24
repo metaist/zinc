@@ -1,0 +1,146 @@
+<script>
+var client = {
+  $article: $('#article'),
+  $preview: $('#preview'),
+  $bio: $('#bio'),
+
+  TICK_NUM: 3,    // default number of ticks to wait
+  TICK_SIZE: 500, // number of ms per tick
+  ticks: {        // number of ticks left before update
+    article: 0,
+    bio: 0
+  }
+};
+
+// Initialize client.
+client.init = function () {
+  client.PHOTO_TMPL = $('#photo-list li').first().detach();
+  client.update('article');
+
+  google.script.run
+    .withSuccessHandler(function (props) {
+      if (props.remember) {
+        $.each(['author', 'email', 'phone', 'bio'], function (i, val) {
+          $('#' + val).val(props[val]);
+        });
+
+        $('#hasbio').prop('checked', props['hasbio']);
+      }//end if: load author data
+    }).getAuthor();
+
+  $('#loading').hide();
+  $('.container').removeClass('hidden');
+  $('[data-toggle="tooltip"]').tooltip(); // bootstrap tooltips initialized
+
+  return client;
+};
+
+// Update article or bio.
+client.update = function (item, ticks) {
+  client.ticks[item]--;
+  if (ticks) { client.ticks[item] = ticks; }
+  if (client.ticks[item] > 0) { // more ticks left
+    setTimeout(
+      function () { client.update(item); },
+      client.TICK_SIZE
+    );
+  } else { // no more ticks
+    client.update[item].call();
+  }//end if: throttle set
+
+  return client;
+};
+
+client.update.article = function () {
+  var
+    $this = client.$preview,
+    val = smarten($('#article').val()), // fix typography
+    len = val.length,
+    html = marked(val),
+    display = (0 === len ? $this.data('empty') : html);
+
+  $this.html(display);
+  $('#article-html').val(html);
+  $('#article-length').text(commafy(len));
+
+  return val;
+};
+
+client.update.bio = function () {
+  var
+    $this = $('#bio'),
+    val = smarten($this.val()), // fix typography
+    len = val.length;
+
+  $('#bio-length').text(
+    commafy(len) + ' (Remaining: ' +
+    commafy($this.attr('maxlength') - len) + ')'
+  );
+
+  return val;
+};
+
+// Auto-Resize Textareas
+$('.container').on('keyup', 'textarea', function () {
+  $(this)
+    .height(0)
+    .height(this.scrollHeight);
+});
+
+// Article //
+$('#article')
+  .change(function () { $(this).val(client.update.article()); })
+  .keyup(function () { client.update('article', client.TICK_NUM); })
+
+// Bio //
+$('#bio')
+  .change(function () { $(this).val(client.update.bio()); })
+  .keyup(function () { client.update('bio', client.TICK_NUM); });
+
+// Show/Hide Bio
+$('#hasbio').change(function () {
+  $('.toggle-bio').toggle($(this).is(':checked'));
+});
+
+// Remove Photo
+$('#photo-list').on('click', '.remove-photo', function () {
+  $(this).parents('li').remove();
+  var num = $('#photo-list li').length;
+
+  if (num < 6) { $('#add-photo').show(); }
+  $('#numphotos').val(num);
+});
+
+// Add Photo
+$('#add-photo').click(function (e) {
+  e.preventDefault(); // don't submit the form
+
+  var
+    $btn = $('#add-photo'),
+    $list = $('#photo-list'),
+    $photos = $list.find('li');
+
+  if ($photos.length < 6) {
+    client.PHOTO_TMPL
+      .clone()
+      .find('.caption,.credit').val('').end()
+      .appendTo($list).removeClass('hidden')
+      .find('.caption').focus().end()
+      .find('.image').click().end();
+  }//end if: add new row
+
+  var num = $list.find('li').length;
+  if (num >= 6) { $btn.hide(); }
+  $('#numphotos').val(num);
+
+  return false;
+});
+
+// Submit
+$('#submit').click(function () {
+  google.script.run.doSubmit($('form')[0]);
+});
+
+// Initialize
+$(function () { client.init(); });
+</script>

@@ -1,0 +1,38 @@
+<script src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script>
+// From: http://stackoverflow.com/a/6786040
+// Add commas after every three digits.
+function commafy(num) {
+  var str = num.toString().split('.');
+  if (str[0].length >= 4) {
+    str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+  }
+
+  if (str[1] && str[1].length >= 4) {
+    str[1] = str[1].replace(/(\d{3})/g, '$1 ');
+  }
+
+  return str.join('.');
+}
+
+// From: https://gist.github.com/drdrang/705071
+// Change straight quotes to curly and double hyphens to em-dashes.
+function smarten(a) {
+  a = a.replace(/(^|[-\u2014/(\[{"\s])'/g, "$1\u2018"); // opening singles
+  a = a.replace(/'/g, "\u2019"); // closing singles & apostrophes
+  a = a.replace(/(^|[-\u2014/(\[{\u2018\s])"/g, "$1\u201c"); // opening doubles
+  a = a.replace(/"/g, "\u201d"); // closing doubles
+  a = a.replace(/--/g, "\u2014"); // em-dashes
+
+  // Added: fix common typographical mistakes
+  a = a.replace(/ {2,}/g, ' '); // 2 spaces => 1 space
+  a = a.replace(/(\r?\n){3,}/g, '$1$1'); // 2 returns => 1 return
+  a = a.replace(/\u201d\,/g, ',\u201d'); // ", => ,"
+  a = a.replace(/\u201d\./g, '.\u201d'); // ". => ."
+  a = a.replace(/\u2019\,/g, ',\u2019'); // ', => ,'
+  a = a.replace(/\u2019\./g, '.\u2019'); // '. => .'
+  return a
+};
+</script>

@@ -1,0 +1,123 @@
+<title>Submit an Article | JLBC</title>
+<div id="loading" class="container">
+  <br /><span class="alert alert-warning">Loading...</span>
+</div>
+<div class="container hidden">
+  <form id="zinc" class="form-horizontal">
+    <div class="form-group">
+      <div class="col-sm-3">
+        <a href="http://www.jewishlinkbc.com/"><img src="http://www.jewishlinkbc.com/templates/ja_teline_iii/images/logo.png"
+         alt="Jewish Link of Bergen County"/></a>
+         <br class="visible-sm" />
+      </div>
+      <div class="col-sm-9">
+        <input type="text" id="headline" name="headline" class="form-control"
+               required="required" placeholder="Headline" />
+        <span class="required"></span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-3">
+        <input type="text" id="category" name="category" class="form-control"
+               placeholder="Proposed Category" />
+      </div>
+      <div class="col-sm-3">
+        <input type="text" id="author" name="author" class="form-control"
+               required="required" placeholder="Author" data-toggle="tooltip"
+               title="Separate multiple authors with commas." />
+        <span class="required"></span>
+      </div>
+      <div class="col-sm-3">
+        <input type="email" id="email" name="email" class="form-control"
+               required="required" placeholder="Email" />
+        <span class="required"></span>
+      </div>
+      <div class="col-sm-3">
+        <input type="tel" id="phone" name="phone" class="form-control"
+               required="required" placeholder="Phone" data-toggle="tooltip"
+               title="Most available number." />
+        <span class="required"></span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-6">
+        <textarea id="article" name="article" class="form-control" rows="2"
+                  required="required"
+                  placeholder="Paste article here"></textarea>
+        <span class="required"></span>
+        <div class="text-muted">
+          Length:
+            <span id="article-length" data-toggle="tooltip"
+                  title="Including spaces">0</span>
+        </div>
+
+        <br />
+        <label><input id="hasbio" name="hasbio" type="checkbox" value="1" />
+          Add Bio <span class="text-muted">(optional)</span>
+        </label>
+        <label class="pull-right" data-toggle="tooltip"
+               title="Save my contact info and bio on this computer.">
+          <input id="remember" name="remember" type="checkbox" value="1" /> Remember Me
+        </label>
+        <textarea id="bio" name="bio" class="toggle-bio form-control" rows="2"
+                  maxlength="600" placeholder="Paste bio here"></textarea>
+        <div class="toggle-bio text-muted">
+          Length:
+          <span id="bio-length" data-toggle="tooltip"
+                title="Including spaces">0 (Remaining: 600)</span>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <hr class="visible-xs" />
+        <div id="preview" data-empty="<em>Preview will appear here.</em>"></div>
+        <input type="hidden" id="article-html" name="articlehtml" value="" />
+        <br />
+        <p class="text-center text-muted">
+          Upload up to six of your best photos. We'll pick up to three.
+          <input type="hidden" id="numphotos" name="numphotos" value="0" />
+        </p>
+        <ol id="photo-list" class="list-unstyled">
+          <li class="hidden photo">
+            <div class="form-group">
+              <div class="col-xs-10">
+                <input type="file" accept="image/*" name="photo"
+                       required="required" class="photo btn btn-default" />
+                <span class="required"></span>
+              </div>
+              <div class="col-xs-2 text-right">
+                <button class="remove-photo btn btn-danger">Delete</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-12">
+                <textarea name="caption" class="caption form-control" rows="2"
+                          required="required" placeholder="Caption"></textarea>
+                <span class="required"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input type="text" name="credit" class="credit form-control"
+                         required="required" placeholder="Credit" />
+                <span class="required"></span>
+              </div>
+            </div>
+            <hr />
+          </li>
+        </ol>
+
+        <div class="text-center">
+          <button id="add-photo" class="btn btn-success">
+            <strong>+</strong> Add Photo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-12 text-center">
+        <input type="submit" value="Submit Article" id="submit" class="btn btn-lg btn-primary" />
+      </div>
+    </div>
+  </form>
+</div>
