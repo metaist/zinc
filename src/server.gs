@@ -10,51 +10,39 @@ function doGet() {
   return out;
 }
 
-// Get author info.
-function getAuthor() {
-  var props = PropertiesService.getUserProperties();
-  return {
-    'remember': props.getProperty('remember') || false,
-    'author': props.getProperty('author') || '',
-    'email': props.getProperty('email') || '',
-    'phone': props.getProperty('phone') || '',
-    'hasbio': '1' === props.getProperty('hasbio'),
-    'bio': props.getProperty('bio') || ''
-  };
-}
-
-// Save author info.
-function saveAuthor(form) {
-  var props = PropertiesService.getUserProperties();
-  if (!form.remember) {
-    props.deleteAllProperties();
-  } else {
-    props.setProperties({
-      'remember': form.remember || false,
-      'author': form.author || '',
-      'email': form.email || '',
-      'phone': form.phone || '',
-      'hasbio': '1' === form.addbio,
-      'bio': form.bio || ''
-    });
-  }
+// Check form.
+function doCheck(form) {
+  var result = [];
+  if (!form.headline) { result.push('Missing headline.'); }
+  if (!form.author) { result.push('Missing author.'); }
+  if (!form.email) { result.push('Missing email.'); }
+  if (!form.phone) { result.push('Missing phone.'); }
+  if (!form.article) { result.push('Missing article.'); }
+  return result;
 }
 
 // Process form.
 function doSubmit (form) {
-  var result = '';
+  var result = {status: 'success', data: {}};
   try {
-    saveAuthor(form);
-    var
-      folder = server.createFolder(form),
-      photos = server.uploadPhotos(folder, form),
-      doc = server.createDocument(folder, form, photos);
+    var errs = doCheck(form);
+    if (0 !== errs.length) {
+      result = {status: 'fail', data: errs};
+    } else {
+      var
+        folder = server.createFolder(form),
+        photos = server.uploadPhotos(folder, form),
+        doc = server.createDocument(folder, form, photos);
 
-    server.notifyEditors(folder);
-    Logger.log('PASS: ' + folder.getUrl());
+      server.notifyEditors(folder);
+      result.data = { url: folder.getUrl() };
+    }//end if: check for errors
   } catch (error) {
-    Logger.log('ERROR: ' + error);
+    result = {status: 'error', data: '' + error};
   }//end try
+
+  Logger.log(result);
+  return result;
 }
 
 // Private Methods //
@@ -106,18 +94,15 @@ server.uploadPhoto = function (folder, idx, photo, caption, credit) {
 // Upload the photos in the form.
 server.uploadPhotos = function (folder, form) {
   Logger.log('Start: uploadPhotos');
-  var
-    num = parseInt(form.numphotos, 10),
-    result = [];
-
-  if (!num) {
+  var result = [];
+  if (!form.photo) { // none
     return result;
-  } else if (1 === num) {
+  } else if (!Array.isArray(form.photo)) { // one
     result.push(server.uploadPhoto(
       folder, 0, form.photo, form.caption, form.credit
     ));
-  } else {
-    for (var i = 0, L = form.photos.length; i < L; i++) {
+  } else { // many
+    for (var i = 0, L = form.photo.length; i < L; i++) {
       result.push(server.uploadPhoto(
         folder, i, form.photo[i], form.caption[i], form.credit[i]
       ));
@@ -125,29 +110,6 @@ server.uploadPhotos = function (folder, form) {
   }//end if: have an array
 
   return result;
-};
-
-// Create an HTML file from the form.
-server.createArticle = function (folder, form, captions) {
-  Logger.log('Start: createArticle');
-  var doc = '<div style="font-family:Times New Roman;font-size:12pt;line-height:1"><style>p { margin-bottom: 10px; }</style>';
-
-  doc += 'Proposed Category: ' + (form.category ? form.category : 'None'); // category
-
-  for (var i = 0, L = captions.length; i < L; i++) {
-    doc += '<br />Image ' + (i + 1) + ': ' + captions[i];
-  }//end for: captions added
-
-  doc += '<br />' + form.headline;
-  doc += '<br />' + form.author + ' ' + form.email + ' ' + form.phone;
-  doc += '<br />' + '<br />' + form.articlehtml;
-
-  if (form.hasbio) {
-    doc += '<br /><br /><em>' + form.bio + '</em>';
-  }// end if: added bio
-
-  doc += '</div>';
-  return folder.createFile(form.headline, doc, MimeType.HTML);
 };
 
 // Create a Google Doc from the form.
@@ -166,7 +128,7 @@ server.createDocument = function (folder, form, captions) {
   lines.push('Proposed Category: ' + (form.category ? form.category : 'None'));
 
   for (var i = 0, L = captions.length; i < L; i++) {
-    lines.push('Image ' + (i + 1) + ': ' + captions[i]);
+    lines.push('Photo ' + (i + 1) + ': ' + captions[i]);
   }//end for: captions added
 
   lines.push(form.headline);
@@ -191,6 +153,7 @@ server.createDocument = function (folder, form, captions) {
   return doc;
 };
 
+// Notify the folder owner and editors.
 server.notifyEditors = function (folder) {
   Logger.log('Start: notifyEditors');
   var
@@ -202,7 +165,7 @@ server.notifyEditors = function (folder) {
       subject: '[' + config.path_root + '] ' + folder.getName(),
       htmlBody:
         'New submission: ' +
-        '<a href="' + folder.getURL() + '">' + folder.getName() + '</a>.' +
+        '<a href="' + folder.getUrl() + '">' + folder.getName() + '</a>.' +
         '<br /><br /><em>This is an automated message.'
     };
 

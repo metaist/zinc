@@ -1,9 +1,5 @@
 <script>
 var client = {
-  $article: $('#article'),
-  $preview: $('#preview'),
-  $bio: $('#bio'),
-
   TICK_NUM: 3,    // default number of ticks to wait
   TICK_SIZE: 500, // number of ms per tick
   ticks: {        // number of ticks left before update
@@ -17,20 +13,10 @@ client.init = function () {
   client.PHOTO_TMPL = $('#photo-list li').first().detach();
   client.update('article');
 
-  google.script.run
-    .withSuccessHandler(function (props) {
-      if (props.remember) {
-        $.each(['author', 'email', 'phone', 'bio'], function (i, val) {
-          $('#' + val).val(props[val]);
-        });
-
-        $('#hasbio').prop('checked', props['hasbio']);
-      }//end if: load author data
-    }).getAuthor();
-
-  $('#loading').hide();
-  $('.container').removeClass('hidden');
-  $('[data-toggle="tooltip"]').tooltip(); // bootstrap tooltips initialized
+  $('#loading').addClass('hidden');
+  $('#zinc').removeClass('hidden');
+  $('[data-toggle="tooltip"]').tooltip();
+  $('#headline').focus();
 
   return client;
 };
@@ -52,17 +38,8 @@ client.update = function (item, ticks) {
 };
 
 client.update.article = function () {
-  var
-    $this = client.$preview,
-    val = smarten($('#article').val()), // fix typography
-    len = val.length,
-    html = marked(val),
-    display = (0 === len ? $this.data('empty') : html);
-
-  $this.html(display);
-  $('#article-html').val(html);
-  $('#article-length').text(commafy(len));
-
+  var val = smarten($('#article').val());
+  $('#article-length').text(commafy(val.length));
   return val;
 };
 
@@ -105,10 +82,7 @@ $('#hasbio').change(function () {
 // Remove Photo
 $('#photo-list').on('click', '.remove-photo', function () {
   $(this).parents('li').remove();
-  var num = $('#photo-list li').length;
-
-  if (num < 6) { $('#add-photo').show(); }
-  $('#numphotos').val(num);
+  if ($('#photo-list li').length < 6) { $('#add-photo').show(); }
 });
 
 // Add Photo
@@ -126,19 +100,60 @@ $('#add-photo').click(function (e) {
       .find('.caption,.credit').val('').end()
       .appendTo($list).removeClass('hidden')
       .find('.caption').focus().end()
-      .find('.image').click().end();
+      .find('.image').click().end()
+      .find('[data-toggle="tooltip"]').tooltip();
   }//end if: add new row
 
-  var num = $list.find('li').length;
-  if (num >= 6) { $btn.hide(); }
-  $('#numphotos').val(num);
-
+  if ($list.find('li').length >= 6) { $btn.hide(); }
   return false;
 });
 
 // Submit
-$('#submit').click(function () {
-  google.script.run.doSubmit($('form')[0]);
+$('#submit').click(function (e) {
+  $('#loading').addClass('hidden');
+  if (google) {
+    google.script.run
+      .withSuccessHandler(function (result) {
+        console.log(result);
+        switch (result.status) {
+        case 'success':
+          $('#zinc').addClass('hidden');
+          $('#loading')
+            .find('.alert')
+              .removeClass('alert-warning alert-danger')
+              .addClass('alert-success')
+              .text('Your article has been submitted. Thank you.')
+            .end()
+            .removeClass('hidden');
+          break;
+        case 'fail':
+          $('#zinc').removeClass('hidden');
+          $('#loading')
+            .find('.alert')
+              .removeClass('alert-warning alert-success')
+              .addClass('alert-danger')
+              .html('<strong>Whoops!</strong><br />' +
+                    result.data.join('<br />'))
+            .end()
+            .removeClass('hidden');
+          break;
+        case 'error':
+          $('#zinc').removeClass('hidden');
+          $('#loading')
+            .find('.alert')
+              .removeClass('alert-warning alert-success')
+              .addClass('alert-danger')
+              .html(
+                '<strong>Error</strong>: ' +
+                (result.data || 'Unknown problem.') +
+                ' Please contact us at <a href="mailto:editors@jewishlinkbc.com">editors@jewishlinkbc.com</a>.'
+              )
+            .end()
+            .removeClass('hidden');
+          break;
+        }//end switch
+      }).doSubmit($('form')[0]);
+  }//end if: backend call
 });
 
 // Initialize
