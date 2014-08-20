@@ -52,6 +52,9 @@
           Length:
             <span id="article-length" data-toggle="tooltip"
                   title="Including spaces">0</span>
+            <span id="article-size" class="pull-right" data-toggle="tooltip"
+                  title="Approximate size">(too small)</span>
+            <input type="hidden" id="pagesize" name="pagesize" value="" />
         </div>
 
         <br />
@@ -115,7 +118,9 @@
 
     <div class="form-group">
       <div class="col-sm-12 text-center">
-        <input type="submit" value="Submit Article" id="submit" class="btn btn-lg btn-primary" />
+        <input type="submit" value="Submit Article" id="submit"
+               data-loading-text="Submitting..."
+               class="btn btn-lg btn-primary" />
       </div>
     </div>
   </form>

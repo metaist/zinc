@@ -125,6 +125,7 @@ server.createDocument = function (folder, form, captions) {
   style[DocumentApp.Attribute.FONT_FAMILY] = DocumentApp.FontFamily.TIMES_NEW_ROMAN;
   style[DocumentApp.Attribute.FONT_SIZE] = 12;
 
+  lines.push('Approx. size: ' + form.pagesize);
   lines.push('Proposed Category: ' + (form.category ? form.category : 'None'));
 
   for (var i = 0, L = captions.length; i < L; i++) {
