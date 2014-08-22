@@ -160,13 +160,16 @@ server.notifyEditors = function (folder) {
   var
     editors = folder.getEditors(),
     cc = [],
+    folderurl = folder.getUrl()
+      .replace('https://docs.google.com/folderview?id=', 'https://drive.google.com/drive/u/0/#folders/')
+      .replace('&usp=drivesdk', ''),
     msg = {
       to: folder.getOwner().getEmail(),
       noReply: true,
       subject: '[' + config.path_root + '] ' + folder.getName(),
       htmlBody:
         'New submission: ' +
-        '<a href="' + folder.getUrl() + '">' + folder.getName() + '</a>.' +
+        '<a href="' + folderurl + '">' + folder.getName() + '</a>.' +
         '<br /><br /><em>This is an automated message.'
     };
 
