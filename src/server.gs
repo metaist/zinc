@@ -158,14 +158,17 @@ server.createDocument = function (folder, form, captions) {
 server.notifyEditors = function (folder) {
   Logger.log('Start: notifyEditors');
   var
-    editors = folder.getEditors(),
+    editors = server.putFolder(config.path_root).getEditors(),
     cc = [],
+    bcc = [],
     folderurl = folder.getUrl()
       .replace('https://docs.google.com/folderview?id=', 'https://drive.google.com/drive/u/0/#folders/')
       .replace('&usp=drivesdk', ''),
     msg = {
-      to: folder.getOwner().getEmail(),
+      to: 'editors@jewishlinkbc.com',
       noReply: true,
+      replyTo: 'editors@jewishlinkbc.com',
+      name: 'JLBC Zinc',
       subject: '[' + config.path_root + '] ' + folder.getName(),
       htmlBody:
         'New submission: ' +
@@ -173,11 +176,14 @@ server.notifyEditors = function (folder) {
         '<br /><br /><em>This is an automated message.'
     };
 
+  bcc.push(folder.getOwner().getEmail());
   for (var i = 0, L = editors.length; i < L; i++) {
     cc.push(editors[i].getEmail());
-  }//end for: editors notified
+  }//end for: list of editors
 
   if (cc.length) { msg.cc = cc.join(','); }
+  if (bcc.length) { msg.bcc = bcc.join(','); }
+
   Logger.log(msg);
   MailApp.sendEmail(msg);
 };
