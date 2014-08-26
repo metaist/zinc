@@ -1,3 +1,5 @@
+function isDebug() { return true; }
+
 // Include files in views.
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
@@ -120,34 +122,43 @@ server.createDocument = function (folder, form, captions) {
     body = doc.getBody(),
     par,
     lines = [],
-    style = {};
+    style = {},
+    write = function (str, attr) {
+      return body.appendParagraph(str).setAttributes(attr || style);
+    };
 
+  style[DocumentApp.Attribute.LINE_SPACING] = 1;
   style[DocumentApp.Attribute.FONT_FAMILY] = DocumentApp.FontFamily.TIMES_NEW_ROMAN;
   style[DocumentApp.Attribute.FONT_SIZE] = 12;
 
-  lines.push('Approx. size: ' + form.pagesize);
-  lines.push('Proposed Category: ' + (form.category ? form.category : 'None'));
+  write('Approx. size: ' + form.article.split(/\s+/).length
+        + ' words (' + form.pagesize + ')');
+  write('Proposed Category: ' + (form.category ? form.category : 'None'));
 
   for (var i = 0, L = captions.length; i < L; i++) {
-    lines.push('Photo ' + (i + 1) + ': ' + captions[i]);
+    write('Photo ' + (i + 1) + ': ' + captions[i]);
   }//end for: captions added
 
-  lines.push(form.headline);
-  lines.push(form.author + ' ' + form.email + ' ' + form.phone);
+  write('Contact: ' + form.email + ' ' + form.phone);
+
+  style[DocumentApp.Attribute.SPACING_BEFORE] = 0;
+  style[DocumentApp.Attribute.SPACING_AFTER] = 12;
+
+  style[DocumentApp.Attribute.BOLD] = true;
+  write(form.headline + '\nBy ' + form.author);
+  style[DocumentApp.Attribute.BOLD] = false;
+
   lines = lines.concat(form.article.split(/\r?\n/));
 
   for (var i = 0, L = lines.length; i < L; i++) {
     var line = lines[i].trim();
-    if (!line) { continue; }
-
-    par = body.appendParagraph(lines[i]);
-    par.setAttributes(style);
+    if (line) { write(line); }
   }//end for: lines added
 
   if (form.hasbio) {
-    par = body.appendParagraph(form.bio);
     style[DocumentApp.Attribute.ITALIC] = true;
-    par.setAttributes(style);
+    write(form.bio);
+    style[DocumentApp.Attribute.ITALIC] = false;
   }// end if: added bio
 
   folder.addFile(DriveApp.getFileById(doc.getId()));
@@ -165,8 +176,8 @@ server.notifyEditors = function (folder) {
       .replace('https://docs.google.com/folderview?id=', 'https://drive.google.com/drive/u/0/#folders/')
       .replace('&usp=drivesdk', ''),
     msg = {
-      to: 'editors@jewishlinkbc.com',
-      noReply: true,
+      to: folder.getOwner().getEmail(), // by default
+      noReply: true, // Google Apps only
       replyTo: 'editors@jewishlinkbc.com',
       name: 'JLBC Zinc',
       subject: '[' + config.path_root + '] ' + folder.getName(),
@@ -176,6 +187,7 @@ server.notifyEditors = function (folder) {
         '<br /><br /><em>This is an automated message.'
     };
 
+  if (!isDebug()) { msg.to = 'editors@jewishlinkbc.com'; }
   bcc.push(folder.getOwner().getEmail());
   for (var i = 0, L = editors.length; i < L; i++) {
     cc.push(editors[i].getEmail());

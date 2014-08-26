@@ -32,6 +32,8 @@ function smarten(a) {
   a = a.replace(/\u201d\./g, '.\u201d'); // ". => ."
   a = a.replace(/\u2019\,/g, ',\u2019'); // ', => ,'
   a = a.replace(/\u2019\./g, '.\u2019'); // '. => .'
+  
+  a = a.trim();
   return a
 }
 

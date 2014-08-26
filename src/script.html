@@ -38,11 +38,12 @@ client.update = function (item, ticks) {
 };
 
 client.update.article = function () {
-  var val = smarten($('#article').val()),
-    psize = pagesize(val.length, $('#photo-list li').length);
+  var val = smarten($('#article').val()), // fix typography
+    psize = pagesize(val.length, $('#photo-list li').length),
+    wordcount = (val.length > 0 ? val.split(/\s+/).length : 0);
 
   $('#article-length').text(commafy(val.length));
-  $('#article-size').text(psize);
+  $('#article-size').text(psize + ' (Words: ' + wordcount + ')');
   $('#pagesize').val(psize);
   return val;
 };
@@ -66,6 +67,9 @@ $('.container').on('keyup', 'textarea', function () {
   $(this)
     .height(0)
     .height(this.scrollHeight);
+}).on('change', '#headline,#author,.caption,.credit', function () {
+  var $this = $(this);
+  $this.val(smarten($this.val()));
 });
 
 // Article //
