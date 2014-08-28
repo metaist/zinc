@@ -1,4 +1,4 @@
-function isDebug() { return true; }
+function getEnv() { return 'PROD'; }
 
 // Include files in views.
 function include(filename) {
@@ -165,18 +165,24 @@ server.createDocument = function (folder, form, captions) {
   return doc;
 };
 
-// Notify the folder owner and editors.
+// Notify the editors.
 server.notifyEditors = function (folder) {
   Logger.log('Start: notifyEditors');
   var
-    editors = server.putFolder(config.path_root).getEditors(),
+    path_root = server.putFolder(config.path_root),
+    editors = path_root.getEditors(),
     cc = [],
     bcc = [],
     folderurl = folder.getUrl()
       .replace('https://docs.google.com/folderview?id=', 'https://drive.google.com/drive/u/0/#folders/')
       .replace('&usp=drivesdk', ''),
+    to = {
+      LOCAL: path_root.getOwner().getEmail(),
+      DEV: 'metaist@metaist.com',
+      PROD: 'editors@jewishlinkbc.com'
+    },
     msg = {
-      to: folder.getOwner().getEmail(), // by default
+      to: to[getEnv()],
       noReply: true, // Google Apps only
       replyTo: 'editors@jewishlinkbc.com',
       name: 'JLBC Zinc',
@@ -186,16 +192,17 @@ server.notifyEditors = function (folder) {
         '<a href="' + folderurl + '">' + folder.getName() + '</a>.' +
         '<br /><br /><em>This is an automated message.'
     };
-
-  if (!isDebug()) { msg.to = 'editors@jewishlinkbc.com'; }
-  bcc.push(folder.getOwner().getEmail());
+  
   for (var i = 0, L = editors.length; i < L; i++) {
-    cc.push(editors[i].getEmail());
+    bcc.push(editors[i].getEmail());
   }//end for: list of editors
 
-  if (cc.length) { msg.cc = cc.join(','); }
-  if (bcc.length) { msg.bcc = bcc.join(','); }
+  if ('PROD' == getEnv()) {
+    if (cc.length) { msg.cc = cc.join(','); }
+    if (bcc.length) { msg.bcc = bcc.join(','); }
+  } else { Logger.log('CC: ' + cc + ', BCC: ' + bcc); }
 
   Logger.log(msg);
   MailApp.sendEmail(msg);
 };
+
